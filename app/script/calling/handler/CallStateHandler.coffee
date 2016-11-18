@@ -397,6 +397,7 @@ class z.calling.handler.CallStateHandler
     @call_center.media_stream_handler.release_media_streams()
     @call_center.get_call_by_id conversation_id
     .then (call_et) =>
+      call_et.state z.calling.enum.CallState.ENDED
       if has_call_dropped
         call_et.finished_reason = z.calling.enum.CallFinishedReason.CONNECTION_DROPPED
       else
@@ -525,8 +526,10 @@ class z.calling.handler.CallStateHandler
       if @call_center.media_stream_handler.has_media_streams()
         @logger.log @logger.levels.INFO, 'MediaStream has already been initialized', @call_center.media_stream_handler.local_media_streams
       else
+        @call_center.timings().time_step z.telemetry.calling.CallSetupSteps.STREAM_REQUESTED if @call_center.timings()
         return @call_center.media_stream_handler.initiate_media_stream conversation_id, is_videod
     .then =>
+      @call_center.timings().time_step z.telemetry.calling.CallSetupSteps.STREAM_RECEIVED if @call_center.timings()
       return @_put_state_to_join conversation_id, @_create_state_payload(z.calling.enum.ParticipantState.JOINED), true
     .catch (error) =>
       @logger.log @logger.levels.ERROR, "Joining call in '#{conversation_id}' failed: #{error.name}", error
