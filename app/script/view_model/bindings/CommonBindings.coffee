@@ -286,3 +286,16 @@ ko.bindingHandlers.hide_controls =
       hide_timeout = window.setTimeout ->
         element.classList.add 'hide-controls'
       , timeout
+
+# Adjust input size when input value changes
+ko.bindingHandlers.input_autosize =
+  init: (element, valueAccessor, allBindings, data, context) ->
+    set_size = (input_element) ->
+      input_element.setAttribute 'size', input_element.value.length + 1
+
+    set_size(element)
+
+    ko.applyBindingsToNode element,
+      event:
+        input: (data, event) -> set_size event.target
+    , context
